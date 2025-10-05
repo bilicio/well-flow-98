@@ -1,4 +1,5 @@
 import Navigation from "@/components/Navigation";
+import BottomNav from "@/components/BottomNav";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -80,7 +81,7 @@ const Profile = () => {
   const progressPercent = (userStats.points / userStats.nextLevelPoints) * 100;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20 md:pb-0">
       <Navigation />
 
       <div className="container mx-auto px-4 py-8">
@@ -269,6 +270,8 @@ const Profile = () => {
           </div>
         </div>
       </div>
+
+      <BottomNav />
     </div>
   );
 };

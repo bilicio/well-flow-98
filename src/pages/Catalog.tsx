@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import Navigation from "@/components/Navigation";
+import BottomNav from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,7 +24,7 @@ const Catalog = () => {
   });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20 md:pb-0">
       <Navigation />
 
       {/* Header */}
@@ -157,6 +158,8 @@ const Catalog = () => {
           </div>
         )}
       </div>
+
+      <BottomNav />
     </div>
   );
 };

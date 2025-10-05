@@ -1,5 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import Navigation from "@/components/Navigation";
+import BottomNav from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,9 +24,9 @@ const ActivityDetail = () => {
   const activity = activities.find((a) => a.id === id);
 
   if (!activity) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
+  return (
+    <div className="min-h-screen bg-background pb-20 md:pb-0">
+      <Navigation />
         <div className="container mx-auto px-4 py-20 text-center">
           <h1 className="text-2xl font-bold mb-4">Atividade não encontrada</h1>
           <Button asChild>
@@ -210,6 +211,8 @@ const ActivityDetail = () => {
           </div>
         </div>
       </div>
+
+      <BottomNav />
     </div>
   );
 };

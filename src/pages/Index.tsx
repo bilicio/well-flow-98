@@ -2,10 +2,13 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Navigation from "@/components/Navigation";
+import BottomNav from "@/components/BottomNav";
 import { Heart, Target, Trophy, Users, Sparkles, MapPin, Calendar, QrCode } from "lucide-react";
 import heroImage from "@/assets/hero-wellness.jpg";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
+  const { user } = useAuth();
   const features = [
     {
       icon: MapPin,
@@ -37,7 +40,7 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20 md:pb-0">
       <Navigation />
 
       {/* Hero Section */}
@@ -50,7 +53,7 @@ const Index = () => {
             <div className="text-white space-y-6 animate-slide-up">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm">
                 <Sparkles className="w-4 h-4" />
-                <span className="text-sm font-medium">Plataforma de Bem-Estar Corporativo</span>
+                <span className="text-sm font-medium">Olá, {user?.name}!</span>
               </div>
               
               <h1 className="text-4xl md:text-6xl font-bold leading-tight">
@@ -224,6 +227,8 @@ const Index = () => {
           <p>© 2025 VivaBem. Plataforma de bem-estar corporativo.</p>
         </div>
       </footer>
+
+      <BottomNav />
     </div>
   );
 };

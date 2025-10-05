@@ -1,10 +1,21 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Heart, Sparkles, User, Menu } from "lucide-react";
+import { Heart, Sparkles, User, Menu, LogOut } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const Navigation = () => {
   const location = useLocation();
+  const { user, logout } = useAuth();
   
   const navLinks = [
     { to: "/", label: "Início" },
@@ -44,13 +55,43 @@ const Navigation = () => {
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-3">
-          <Button variant="ghost" size="icon">
-            <User className="w-5 h-5" />
-          </Button>
-          <Button variant="hero" size="sm">
-            <Sparkles className="w-4 h-4" />
-            Começar
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <Avatar className="w-8 h-8">
+                  <AvatarFallback className="bg-gradient-hero text-white">
+                    {user?.name?.[0]?.toUpperCase() || "U"}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>
+                <div className="flex flex-col">
+                  <span className="font-semibold">{user?.name}</span>
+                  <span className="text-xs text-muted-foreground">{user?.email}</span>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link to="/profile" className="cursor-pointer">
+                  <User className="w-4 h-4 mr-2" />
+                  Meu Perfil
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/favorites" className="cursor-pointer">
+                  <Heart className="w-4 h-4 mr-2" />
+                  Favoritos
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={logout} className="cursor-pointer text-destructive">
+                <LogOut className="w-4 h-4 mr-2" />
+                Sair
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Mobile Menu */}
