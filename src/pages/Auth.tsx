@@ -14,13 +14,6 @@ const Auth = () => {
   const navigate = useNavigate();
   const { login, signup, user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-
-  // Redirect if already logged in
-  if (user) {
-    navigate("/");
-    return null;
-  }
-
   const [loginForm, setLoginForm] = useState({
     email: "",
     password: "",
@@ -31,6 +24,12 @@ const Auth = () => {
     email: "",
     password: "",
   });
+
+  // Redirect if already logged in
+  if (user) {
+    navigate("/");
+    return null;
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,7 +72,7 @@ const Auth = () => {
               <Heart className="w-8 h-8 text-white" fill="white" />
             </div>
             <h1 className="text-3xl font-bold mb-2">
-              Bem-vindo ao <span className="bg-gradient-hero bg-clip-text text-transparent">VivaBem</span>
+              Bem-vindo ao <span className="bg-gradient-hero bg-clip-text text-transparent">MyndPass</span>
             </h1>
             <p className="text-muted-foreground">
               Sua jornada de bem-estar começa aqui

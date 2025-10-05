@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate PWA Icons</title>
+</head>
+<body>
+    <h2>Gerador de Ícones PWA - MyndPass</h2>
+    <p>Abra este arquivo no navegador e clique nos botões para gerar os ícones.</p>
+
+    <button onclick="generateIcon(192)">Gerar icon-192.png</button>
+    <button onclick="generateIcon(512)">Gerar icon-512.png</button>
+
+    <div id="output"></div>
+
+    <script>
+        function generateIcon(size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+
+            // Background
+            ctx.fillStyle = '#9b87f5';
+            ctx.fillRect(0, 0, size, size);
+
+            // Text
+            ctx.fillStyle = 'white';
+            ctx.font = `bold ${size * 0.4}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('MP', size / 2, size / 2);
+
+            // Download
+            canvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `icon-${size}.png`;
+                a.click();
+                URL.revokeObjectURL(url);
+
+                document.getElementById('output').innerHTML += `<p>✓ icon-${size}.png gerado com sucesso!</p>`;
+            });
+        }
+    </script>
+</body>
+</html>

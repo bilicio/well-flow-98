@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     // Check localStorage for existing user
-    const storedUser = localStorage.getItem("vivabem_user");
+    const storedUser = localStorage.getItem("MyndPass_user");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       email,
     };
 
-    localStorage.setItem("vivabem_user", JSON.stringify(mockUser));
+    localStorage.setItem("MyndPass_user", JSON.stringify(mockUser));
     setUser(mockUser);
   };
 
@@ -72,12 +72,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       email,
     };
 
-    localStorage.setItem("vivabem_user", JSON.stringify(mockUser));
+    localStorage.setItem("MyndPass_user", JSON.stringify(mockUser));
     setUser(mockUser);
   };
 
   const logout = () => {
-    localStorage.removeItem("vivabem_user");
+    localStorage.removeItem("MyndPass_user");
     setUser(null);
   };
 

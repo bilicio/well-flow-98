@@ -127,4 +127,10 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+
+  /* iOS Safe Area Support */
+  body {
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
 }

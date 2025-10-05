@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Heart, Sparkles, User, Menu, LogOut } from "lucide-react";
+import { Heart, User, Menu, LogOut } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -26,7 +26,7 @@ const Navigation = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
+    <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 group">
@@ -34,7 +34,7 @@ const Navigation = () => {
             <Heart className="w-5 h-5 text-white" fill="white" />
           </div>
           <span className="text-xl font-bold bg-gradient-hero bg-clip-text text-transparent">
-            VivaBem
+            MyndPass
           </span>
         </Link>
 
@@ -102,22 +102,46 @@ const Navigation = () => {
             </Button>
           </SheetTrigger>
           <SheetContent>
-            <div className="flex flex-col gap-4 mt-8">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.to}
-                  to={link.to}
-                  className={`text-lg font-medium transition-colors hover:text-primary ${
-                    isActive(link.to) ? "text-primary" : "text-muted-foreground"
-                  }`}
+            <div className="flex flex-col h-full pt-8">
+              {/* User Profile Section */}
+              <div className="flex items-center gap-3 pb-6 border-b border-border">
+                <Avatar className="w-12 h-12">
+                  <AvatarFallback className="bg-gradient-hero text-white text-lg">
+                    {user?.name?.[0]?.toUpperCase() || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col">
+                  <span className="font-semibold">{user?.name}</span>
+                  <span className="text-sm text-muted-foreground">{user?.email}</span>
+                </div>
+              </div>
+
+              {/* Navigation Links */}
+              <div className="flex flex-col gap-4 mt-6">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.to}
+                    to={link.to}
+                    className={`text-lg font-medium transition-colors hover:text-primary ${
+                      isActive(link.to) ? "text-primary" : "text-muted-foreground"
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+
+              {/* Logout Button */}
+              <div className="mt-auto pb-4">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-destructive hover:text-destructive"
+                  onClick={logout}
                 >
-                  {link.label}
-                </Link>
-              ))}
-              <Button variant="hero" className="mt-4">
-                <Sparkles className="w-4 h-4" />
-                Começar
-              </Button>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sair
+                </Button>
+              </div>
             </div>
           </SheetContent>
         </Sheet>

@@ -105,7 +105,7 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16 animate-fade-in">
             <h2 className="text-3xl md:text-5xl font-bold mb-4">
-              Como <span className="bg-gradient-hero bg-clip-text text-transparent">VivaBem</span> Funciona
+              Como <span className="bg-gradient-hero bg-clip-text text-transparent">MyndPass</span> Funciona
             </h2>
             <p className="text-lg text-muted-foreground">
               Uma plataforma completa para transformar o bem-estar corporativo em uma experiência engajadora
@@ -224,7 +224,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t border-border py-8">
         <div className="container mx-auto px-4 text-center text-muted-foreground">
-          <p>© 2025 VivaBem. Plataforma de bem-estar corporativo.</p>
+          <p>© 2025 MyndPass. Plataforma de bem-estar corporativo.</p>
         </div>
       </footer>
 
