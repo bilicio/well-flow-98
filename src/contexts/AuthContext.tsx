@@ -5,6 +5,12 @@ interface User {
   name: string;
   email: string;
   avatar?: string;
+  onboardingCompleted?: boolean;
+  preferences?: {
+    feelings: Record<string, number>;
+    activities: string[];
+    hobbies: string[];
+  };
 }
 
 interface AuthContextType {
@@ -13,6 +19,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
+  completeOnboarding: (preferences: any) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -81,8 +88,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
   };
 
+  const completeOnboarding = (preferences: any) => {
+    if (user) {
+      const updatedUser = { ...user, onboardingCompleted: true, preferences };
+      localStorage.setItem("MyndPass_user", JSON.stringify(updatedUser));
+      setUser(updatedUser);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, signup, logout, completeOnboarding }}>
       {children}
     </AuthContext.Provider>
   );
