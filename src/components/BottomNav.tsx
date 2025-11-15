@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Compass, User, Heart } from "lucide-react";
+import { Home, Compass, User, Heart, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const BottomNav = () => {
@@ -15,6 +15,11 @@ const BottomNav = () => {
       to: "/catalog",
       icon: Compass,
       label: "Explorar",
+    },
+    {
+      to: "/near-me",
+      icon: MapPin,
+      label: "Perto",
     },
     {
       to: "/favorites",

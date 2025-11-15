@@ -20,6 +20,7 @@ const Navigation = () => {
   const navLinks = [
     { to: "/", label: "Início" },
     { to: "/catalog", label: "Atividades" },
+    { to: "/near-me", label: "Perto de Mim" },
     { to: "/profile", label: "Meu Progresso" },
   ];
 
