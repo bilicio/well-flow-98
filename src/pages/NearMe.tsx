@@ -1,13 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import { useState } from 'react';
+import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow } from '@vis.gl/react-google-maps';
 import Navigation from "@/components/Navigation";
 import BottomNav from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { MapPin, Navigation as NavigationIcon, AlertCircle } from "lucide-react";
+import { MapPin, Navigation as NavigationIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+const GOOGLE_MAPS_API_KEY = "AIzaSyAMrk3bTCUUBXIazC6c4L6okFCiOZ8y2Nk";
 
 // Sample establishments near user
 const establishments = [
@@ -19,12 +19,9 @@ const establishments = [
 ];
 
 const NearMe = () => {
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
-  const [mapboxToken, setMapboxToken] = useState<string>("");
-  const [tokenSubmitted, setTokenSubmitted] = useState(false);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationPermission, setLocationPermission] = useState<'prompt' | 'granted' | 'denied'>('prompt');
+  const [selectedMarker, setSelectedMarker] = useState<number | null>(null);
   const { toast } = useToast();
 
   const requestLocation = () => {
@@ -40,7 +37,7 @@ const NearMe = () => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        setUserLocation([longitude, latitude]);
+        setUserLocation({ lat: latitude, lng: longitude });
         setLocationPermission('granted');
         toast({
           title: "Localização ativada",
@@ -58,185 +55,132 @@ const NearMe = () => {
     );
   };
 
-  useEffect(() => {
-    if (!mapContainer.current || !tokenSubmitted || !mapboxToken) return;
-
-    mapboxgl.accessToken = mapboxToken;
-
-    const initialCenter: [number, number] = userLocation || [-46.6333, -23.5505];
-    
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: initialCenter,
-      zoom: userLocation ? 14 : 12,
-    });
-
-    // Add navigation controls
-    map.current.addControl(
-      new mapboxgl.NavigationControl({
-        visualizePitch: true,
-      }),
-      'top-right'
-    );
-
-    // Add user location marker if available
-    if (userLocation) {
-      new mapboxgl.Marker({ color: '#2dd4bf', scale: 1.2 })
-        .setLngLat(userLocation)
-        .setPopup(new mapboxgl.Popup().setHTML('<strong>Você está aqui</strong>'))
-        .addTo(map.current);
-    }
-
-    // Add establishment markers
-    establishments.forEach((establishment) => {
-      const el = document.createElement('div');
-      el.className = 'custom-marker';
-      el.style.backgroundImage = 'url(https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png)';
-      el.style.width = '40px';
-      el.style.height = '40px';
-      el.style.backgroundSize = '100%';
-      el.style.cursor = 'pointer';
-
-      const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
-        `<div class="p-2">
-          <h3 class="font-semibold text-sm mb-1">${establishment.name}</h3>
-          <p class="text-xs text-muted-foreground mb-1">${establishment.category}</p>
-          <p class="text-xs">${establishment.address}</p>
-        </div>`
-      );
-
-      new mapboxgl.Marker(el)
-        .setLngLat([establishment.lng, establishment.lat])
-        .setPopup(popup)
-        .addTo(map.current!);
-    });
-
-    return () => {
-      map.current?.remove();
-    };
-  }, [userLocation, tokenSubmitted, mapboxToken]);
-
-  const handleTokenSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (mapboxToken.trim()) {
-      setTokenSubmitted(true);
-      toast({
-        title: "Token configurado",
-        description: "Carregando mapa...",
-      });
-    }
-  };
+  const defaultCenter = { lat: -23.5505, lng: -46.6333 };
+  const center = userLocation || defaultCenter;
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen bg-background">
       <Navigation />
       
-      <main className="flex-1 container mx-auto px-4 py-8 pb-24 md:pb-8">
-        <div className="max-w-6xl mx-auto space-y-6">
-          {/* Header */}
-          <div className="space-y-2">
-            <h1 className="text-4xl font-bold bg-gradient-hero bg-clip-text text-transparent">
-              Perto de Mim
-            </h1>
-            <p className="text-muted-foreground">
-              Encontre estabelecimentos de bem-estar próximos à sua localização
-            </p>
-          </div>
+      <main className="container mx-auto px-4 pt-24 pb-20">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-foreground mb-2">Perto de Mim</h1>
+          <p className="text-muted-foreground">
+            Descubra estabelecimentos de bem-estar próximos a você
+          </p>
+        </div>
 
-          {/* Mapbox Token Input */}
-          {!tokenSubmitted && (
-            <Card className="border-2 border-primary/20 bg-gradient-card">
-              <CardContent className="pt-6">
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-primary mt-0.5" />
-                    <div className="flex-1 space-y-2">
-                      <h3 className="font-semibold">Configure seu token Mapbox</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Para visualizar o mapa, você precisa de um token público do Mapbox. 
-                        Crie uma conta gratuita em{" "}
-                        <a 
-                          href="https://mapbox.com" 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-primary hover:underline"
-                        >
-                          mapbox.com
-                        </a>
-                        {" "}e cole seu token público abaixo.
-                      </p>
-                      <form onSubmit={handleTokenSubmit} className="flex gap-2 mt-4">
-                        <Input
-                          type="text"
-                          placeholder="pk.eyJ1IjoiZXhhbXBsZS..."
-                          value={mapboxToken}
-                          onChange={(e) => setMapboxToken(e.target.value)}
-                          className="flex-1"
-                        />
-                        <Button type="submit">
-                          Confirmar
-                        </Button>
-                      </form>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Location Permission Card */}
-          {tokenSubmitted && locationPermission === 'prompt' && (
-            <Card className="border-2 border-primary/20 bg-gradient-card">
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <h3 className="font-semibold flex items-center gap-2">
-                      <MapPin className="w-5 h-5 text-primary" />
-                      Ativar Localização
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Permita o acesso à sua localização para encontrar estabelecimentos próximos
-                    </p>
-                  </div>
-                  <Button onClick={requestLocation} className="ml-4">
-                    <NavigationIcon className="w-4 h-4 mr-2" />
-                    Ativar GPS
+        {locationPermission === 'prompt' && (
+          <Card className="mb-6 border-primary/20">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-4">
+                <MapPin className="w-6 h-6 text-primary flex-shrink-0 mt-1" />
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg mb-2">Permitir acesso à localização</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Para mostrar estabelecimentos próximos a você, precisamos acessar sua localização.
+                  </p>
+                  <Button onClick={requestLocation} className="gap-2">
+                    <NavigationIcon className="w-4 h-4" />
+                    Ativar Localização
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Map Container */}
-          {tokenSubmitted && (
-            <Card className="overflow-hidden">
-              <div ref={mapContainer} className="w-full h-[600px] rounded-lg" />
-            </Card>
-          )}
-
-          {/* Establishments List */}
-          {tokenSubmitted && (
-            <div className="space-y-4">
-              <h2 className="text-2xl font-semibold">Estabelecimentos Próximos</h2>
-              <div className="grid gap-4 md:grid-cols-2">
-                {establishments.map((establishment) => (
-                  <Card key={establishment.id} className="hover:shadow-glow transition-shadow">
-                    <CardContent className="pt-6">
-                      <div className="space-y-2">
-                        <h3 className="font-semibold">{establishment.name}</h3>
-                        <p className="text-sm text-primary">{establishment.category}</p>
-                        <p className="text-sm text-muted-foreground flex items-center gap-2">
-                          <MapPin className="w-4 h-4" />
-                          {establishment.address}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
               </div>
-            </div>
-          )}
+            </CardContent>
+          </Card>
+        )}
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          <div className="h-[500px] rounded-lg overflow-hidden border">
+            <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+              <Map
+                defaultCenter={center}
+                defaultZoom={userLocation ? 14 : 12}
+                mapId="wellness-map"
+                gestureHandling="greedy"
+                disableDefaultUI={false}
+              >
+                {userLocation && (
+                  <AdvancedMarker position={userLocation}>
+                    <Pin
+                      background={'#2dd4bf'}
+                      borderColor={'#14b8a6'}
+                      glyphColor={'#fff'}
+                      scale={1.2}
+                    />
+                  </AdvancedMarker>
+                )}
+
+                {establishments.map((establishment) => (
+                  <AdvancedMarker
+                    key={establishment.id}
+                    position={{ lat: establishment.lat, lng: establishment.lng }}
+                    onClick={() => setSelectedMarker(establishment.id)}
+                  >
+                    <Pin
+                      background={'#9333ea'}
+                      borderColor={'#7c3aed'}
+                      glyphColor={'#fff'}
+                    />
+                  </AdvancedMarker>
+                ))}
+
+                {selectedMarker && (
+                  <InfoWindow
+                    position={{
+                      lat: establishments.find(e => e.id === selectedMarker)!.lat,
+                      lng: establishments.find(e => e.id === selectedMarker)!.lng,
+                    }}
+                    onCloseClick={() => setSelectedMarker(null)}
+                  >
+                    <div className="p-2">
+                      <h4 className="font-semibold text-gray-900">
+                        {establishments.find(e => e.id === selectedMarker)!.name}
+                      </h4>
+                      <p className="text-sm text-gray-600">
+                        {establishments.find(e => e.id === selectedMarker)!.category}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {establishments.find(e => e.id === selectedMarker)!.address}
+                      </p>
+                    </div>
+                  </InfoWindow>
+                )}
+              </Map>
+            </APIProvider>
+          </div>
+
+          <div className="space-y-4">
+            <h2 className="text-2xl font-semibold text-foreground">
+              Estabelecimentos Próximos
+            </h2>
+            {establishments.map((establishment) => (
+              <Card key={establishment.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+                <CardContent className="pt-6">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <MapPin className="w-6 h-6 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg mb-1">{establishment.name}</h3>
+                      <p className="text-sm text-muted-foreground mb-2">{establishment.category}</p>
+                      <p className="text-sm text-muted-foreground flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        {establishment.address}
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedMarker(establishment.id)}
+                    >
+                      Ver no Mapa
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </main>
 
