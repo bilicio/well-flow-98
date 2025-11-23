@@ -1,13 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow } from '@vis.gl/react-google-maps';
 import Navigation from "@/components/Navigation";
 import BottomNav from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Navigation as NavigationIcon } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { MapPin, Navigation as NavigationIcon, Key } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-const GOOGLE_MAPS_API_KEY = "AIzaSyAMrk3bTCUUBXIazC6c4L6okFCiOZ8y2Nk";
 
 // Sample establishments near user
 const establishments = [
@@ -22,7 +21,37 @@ const NearMe = () => {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationPermission, setLocationPermission] = useState<'prompt' | 'granted' | 'denied'>('prompt');
   const [selectedMarker, setSelectedMarker] = useState<number | null>(null);
+  const [apiKey, setApiKey] = useState<string>('');
+  const [apiKeyInput, setApiKeyInput] = useState<string>('');
+  const [showApiKeyForm, setShowApiKeyForm] = useState<boolean>(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const savedApiKey = localStorage.getItem('google_maps_api_key');
+    if (savedApiKey) {
+      setApiKey(savedApiKey);
+    } else {
+      setShowApiKeyForm(true);
+    }
+  }, []);
+
+  const handleSaveApiKey = () => {
+    if (!apiKeyInput.trim()) {
+      toast({
+        title: "Chave inválida",
+        description: "Por favor, insira uma chave de API válida.",
+        variant: "destructive",
+      });
+      return;
+    }
+    localStorage.setItem('google_maps_api_key', apiKeyInput.trim());
+    setApiKey(apiKeyInput.trim());
+    setShowApiKeyForm(false);
+    toast({
+      title: "Chave salva",
+      description: "Sua chave do Google Maps foi salva no navegador.",
+    });
+  };
 
   const requestLocation = () => {
     if (!navigator.geolocation) {
@@ -70,6 +99,34 @@ const NearMe = () => {
           </p>
         </div>
 
+        {showApiKeyForm && (
+          <Card className="mb-6 border-primary/20">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-4">
+                <Key className="w-6 h-6 text-primary flex-shrink-0 mt-1" />
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg mb-2">Configure sua Chave do Google Maps</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Para usar o mapa, você precisa inserir sua chave da API do Google Maps. A chave será salva no seu navegador.
+                  </p>
+                  <div className="flex gap-2">
+                    <Input
+                      type="text"
+                      placeholder="Cole sua chave da API do Google Maps"
+                      value={apiKeyInput}
+                      onChange={(e) => setApiKeyInput(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button onClick={handleSaveApiKey}>
+                      Salvar Chave
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {locationPermission === 'prompt' && (
           <Card className="mb-6 border-primary/20">
             <CardContent className="pt-6">
@@ -90,9 +147,10 @@ const NearMe = () => {
           </Card>
         )}
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div className="h-[500px] rounded-lg overflow-hidden border">
-            <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+        {apiKey && (
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="h-[500px] rounded-lg overflow-hidden border">
+              <APIProvider apiKey={apiKey}>
               <Map
                 defaultCenter={center}
                 defaultZoom={userLocation ? 14 : 12}
@@ -182,6 +240,7 @@ const NearMe = () => {
             ))}
           </div>
         </div>
+        )}
       </main>
 
       <BottomNav />
