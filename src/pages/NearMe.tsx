@@ -24,6 +24,7 @@ const NearMe = () => {
   const [apiKey, setApiKey] = useState<string>('');
   const [apiKeyInput, setApiKeyInput] = useState<string>('');
   const [showApiKeyForm, setShowApiKeyForm] = useState<boolean>(false);
+  const [isMapLoaded, setIsMapLoaded] = useState<boolean>(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -157,8 +158,9 @@ const NearMe = () => {
                 mapId="wellness-map"
                 gestureHandling="greedy"
                 disableDefaultUI={false}
+                onTilesLoaded={() => setIsMapLoaded(true)}
               >
-                {userLocation && (
+                {isMapLoaded && userLocation && (
                   <AdvancedMarker position={userLocation}>
                     <Pin
                       background={'#2dd4bf'}
@@ -169,7 +171,7 @@ const NearMe = () => {
                   </AdvancedMarker>
                 )}
 
-                {establishments.map((establishment) => (
+                {isMapLoaded && establishments.map((establishment) => (
                   <AdvancedMarker
                     key={establishment.id}
                     position={{ lat: establishment.lat, lng: establishment.lng }}
