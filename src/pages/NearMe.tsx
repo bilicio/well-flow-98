@@ -25,6 +25,7 @@ const NearMe = () => {
   const [apiKeyInput, setApiKeyInput] = useState<string>('');
   const [showApiKeyForm, setShowApiKeyForm] = useState<boolean>(false);
   const [isMapLoaded, setIsMapLoaded] = useState<boolean>(false);
+  const [hasMapError, setHasMapError] = useState<boolean>(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -34,6 +35,27 @@ const NearMe = () => {
     } else {
       setShowApiKeyForm(true);
     }
+
+    // Listen for Google Maps API errors
+    const handleMapError = () => {
+      setHasMapError(true);
+      setIsMapLoaded(false);
+      toast({
+        title: "Erro ao carregar o mapa",
+        description: "Verifique sua chave da API do Google Maps.",
+        variant: "destructive",
+      });
+    };
+
+    window.addEventListener('error', (e) => {
+      if (e.message && (e.message.includes('Google Maps') || e.message.includes('AuthFailure'))) {
+        handleMapError();
+      }
+    });
+
+    return () => {
+      window.removeEventListener('error', handleMapError);
+    };
   }, []);
 
   const handleSaveApiKey = () => {
@@ -48,10 +70,19 @@ const NearMe = () => {
     localStorage.setItem('google_maps_api_key', apiKeyInput.trim());
     setApiKey(apiKeyInput.trim());
     setShowApiKeyForm(false);
+    setHasMapError(false);
+    setIsMapLoaded(false);
     toast({
       title: "Chave salva",
       description: "Sua chave do Google Maps foi salva no navegador.",
     });
+  };
+
+  const handleChangeApiKey = () => {
+    setShowApiKeyForm(true);
+    setApiKey('');
+    setHasMapError(false);
+    localStorage.removeItem('google_maps_api_key');
   };
 
   const requestLocation = () => {
@@ -110,6 +141,22 @@ const NearMe = () => {
                   <p className="text-muted-foreground mb-4">
                     Para usar o mapa, você precisa inserir sua chave da API do Google Maps. A chave será salva no seu navegador.
                   </p>
+                  <div className="bg-muted/50 p-4 rounded-lg mb-4 text-sm">
+                    <p className="font-medium mb-2">Requisitos da chave da API:</p>
+                    <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                      <li>Habilite a <strong>Maps JavaScript API</strong> no Google Cloud Console</li>
+                      <li>Habilite a <strong>Places API</strong> (opcional, para funcionalidades futuras)</li>
+                      <li>Configure as restrições de URL para incluir seu domínio</li>
+                    </ul>
+                    <a 
+                      href="https://developers.google.com/maps/documentation/javascript/get-api-key" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline mt-2 inline-block"
+                    >
+                      Como obter uma chave da API do Google Maps →
+                    </a>
+                  </div>
                   <div className="flex gap-2">
                     <Input
                       type="text"
@@ -122,6 +169,31 @@ const NearMe = () => {
                       Salvar Chave
                     </Button>
                   </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {hasMapError && !showApiKeyForm && (
+          <Card className="mb-6 border-destructive/20 bg-destructive/5">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-4">
+                <Key className="w-6 h-6 text-destructive flex-shrink-0 mt-1" />
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg mb-2 text-destructive">Erro de Autenticação do Google Maps</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Há um problema com sua chave da API. Verifique se:
+                  </p>
+                  <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground mb-4">
+                    <li>A chave da API está correta</li>
+                    <li>A <strong>Maps JavaScript API</strong> está habilitada no seu projeto do Google Cloud</li>
+                    <li>As restrições de domínio estão configuradas corretamente</li>
+                    <li>A cobrança está ativada no Google Cloud (necessário para produção)</li>
+                  </ul>
+                  <Button onClick={handleChangeApiKey} variant="destructive">
+                    Alterar Chave da API
+                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -148,10 +220,13 @@ const NearMe = () => {
           </Card>
         )}
 
-        {apiKey && (
+        {apiKey && !showApiKeyForm && (
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="h-[500px] rounded-lg overflow-hidden border">
-              <APIProvider apiKey={apiKey}>
+              <APIProvider 
+                apiKey={apiKey}
+                onLoad={() => setHasMapError(false)}
+              >
               <Map
                 defaultCenter={center}
                 defaultZoom={userLocation ? 14 : 12}
